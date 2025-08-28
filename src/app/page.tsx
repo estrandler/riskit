@@ -82,9 +82,9 @@ export default function Home() {
   if (showNameInput) {
     return (
       <div className="font-sans flex flex-col items-center justify-start min-h-screen p-4 gap-6">
-        <h1 className="text-xl font-medium text-white text-center">
+        <h2 className="text-xl font-medium text-gray-300 text-center">
           Välkommen till RiskIt!
-        </h1>
+        </h2>
         <form
           onSubmit={handleNameSubmit}
           className="flex flex-col gap-3 items-center w-full max-w-xs"

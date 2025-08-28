@@ -34,6 +34,13 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <div className="text-center pt-4 pb-2">
+          <h1 className="text-2xl font-bold text-white">
+            You&apos;ve gotta{" "}
+            <span className="text-green-400">💰 RISK IT 💰</span> to get the{" "}
+            <span className="text-orange-400">🍪 BISCUIT 🍪</span>!
+          </h1>
+        </div>
         {children}
       </body>
     </html>
