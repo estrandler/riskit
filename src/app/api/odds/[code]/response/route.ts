@@ -3,11 +3,11 @@ import OddsRepository from "@/lib/odds-repository";
 
 export async function PUT(
   request: Request,
-  { params }: { params: { code: string } }
+  { params }: { params: Promise<{ code: string }> }
 ) {
   try {
     const repository = OddsRepository.getInstance();
-    const { code } = params;
+    const { code } = await params;
     const body = await request.json();
     const { response, playerName, isChallenger } = body;
 
@@ -39,9 +39,9 @@ export async function PUT(
       );
     }
 
-    if (response > existingOdds.max + 1) {
+    if (response > existingOdds.max) {
       return NextResponse.json(
-        { error: `Response must be between 0 and ${existingOdds.max + 1}` },
+        { error: `Response must be between 1 and ${existingOdds.max}` },
         { status: 400 }
       );
     }

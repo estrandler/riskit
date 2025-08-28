@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 interface Challenger {
   name: string;
@@ -32,6 +32,7 @@ interface OddsDocument {
 
 export default function OddsView() {
   const params = useParams();
+  const router = useRouter();
   const code = params.code as string;
 
   const [odds, setOdds] = useState<OddsDocument | null>(null);
@@ -55,7 +56,9 @@ export default function OddsView() {
         const data = await response.json();
         setOdds(data);
       } else if (response.status === 404) {
-        setError("Odds not found");
+        // Redirect to start page if odds not found
+        router.push("/");
+        return;
       } else {
         setError("Failed to load odds");
       }
@@ -64,7 +67,7 @@ export default function OddsView() {
     } finally {
       setLoading(false);
     }
-  }, [code]);
+  }, [code, router]);
 
   // Check user identity and set up polling if challenger
   useEffect(() => {
@@ -87,14 +90,23 @@ export default function OddsView() {
       const isUserChallenger = odds.challenger.name === userName;
       setIsChallenger(isUserChallenger);
 
-      // Start polling if game is in progress but not completed
-      const shouldPoll =
-        odds.max !== undefined &&
-        !odds.gameResult &&
-        ((isUserChallenger && odds.challengee?.response === undefined) ||
-          (!isUserChallenger && odds.challenger.response === undefined) ||
-          (odds.challenger.response !== undefined &&
-            odds.challengee?.response !== undefined));
+      // Determine if we should poll
+      let shouldPoll = false;
+
+      if (!odds.gameResult) {
+        if (isUserChallenger) {
+          // Challenger should poll when waiting for max value OR waiting for challengee response
+          shouldPoll =
+            odds.max === undefined ||
+            (odds.challenger.response !== undefined &&
+              odds.challengee?.response === undefined);
+        } else {
+          // Challengee should poll when waiting for challenger response
+          shouldPoll =
+            odds.challengee?.response !== undefined &&
+            odds.challenger.response === undefined;
+        }
+      }
 
       if (shouldPoll) {
         const interval = setInterval(fetchOdds, 2000); // Poll every 2 seconds
@@ -199,24 +211,24 @@ export default function OddsView() {
   // Name input view
   if (showNameInput) {
     return (
-      <div className="font-sans flex flex-col items-center justify-center min-h-screen p-8 gap-8">
-        <h1 className="text-2xl font-medium text-foreground">Ange ditt namn</h1>
+      <div className="font-sans flex flex-col items-center justify-center min-h-screen p-4 gap-6">
+        <h1 className="text-lg font-medium text-foreground">Ange ditt namn</h1>
         <form
           onSubmit={handleNameSubmit}
-          className="flex flex-col gap-4 items-center"
+          className="flex flex-col gap-3 items-center w-full max-w-xs"
         >
           <input
             type="text"
             placeholder="Ditt namn"
             value={inputName}
             onChange={(e) => setInputName(e.target.value)}
-            className="border border-black/[.08] dark:border-white/[.145] rounded px-4 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-foreground text-center min-w-[200px]"
+            className="border border-black/[.08] dark:border-white/[.145] rounded px-3 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-foreground text-center w-full text-sm"
             required
             autoFocus
           />
           <button
             type="submit"
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-base h-12 px-6"
+            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm h-10 px-5 w-full"
           >
             Fortsätt
           </button>
@@ -227,24 +239,28 @@ export default function OddsView() {
 
   if (loading) {
     return (
-      <div className="font-sans flex flex-col items-center justify-center min-h-screen p-8">
-        <div className="text-foreground">Laddar...</div>
+      <div className="font-sans flex flex-col items-center justify-center min-h-screen p-4">
+        <div className="text-foreground text-sm">Laddar...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="font-sans flex flex-col items-center justify-center min-h-screen p-8">
-        <div className="text-red-500">{error}</div>
+      <div className="font-sans flex flex-col items-center justify-center min-h-screen p-4">
+        <div className="text-red-500 text-sm text-center">{error}</div>
       </div>
     );
   }
 
   if (!odds) {
+    // Automatically redirect to start page if odds not found
+    router.push("/");
     return (
-      <div className="font-sans flex flex-col items-center justify-center min-h-screen p-8">
-        <div className="text-foreground">Odds not found</div>
+      <div className="font-sans flex flex-col items-center justify-center min-h-screen p-4">
+        <div className="text-foreground text-sm">
+          Kod hittades inte, omdirigerar...
+        </div>
       </div>
     );
   }
@@ -252,16 +268,16 @@ export default function OddsView() {
   // Show game result if completed
   if (odds.gameResult) {
     return (
-      <div className="font-sans flex flex-col items-center justify-center min-h-screen p-8 gap-8 max-w-2xl mx-auto">
+      <div className="font-sans flex flex-col items-center justify-center min-h-screen p-4 gap-4 max-w-sm mx-auto">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-foreground mb-4">Resultat!</h1>
-          <p className="text-sm text-foreground/60 mb-3">Kod: {odds.code}</p>
+          <h1 className="text-xl font-bold text-foreground mb-2">Resultat!</h1>
+          <p className="text-xs text-foreground/60 mb-2">Kod: {odds.code}</p>
           <button
             onClick={copyUrlToClipboard}
-            className="inline-flex items-center gap-2 text-sm bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 px-3 py-2 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+            className="inline-flex items-center gap-1 text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 px-2 py-1 rounded hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
           >
             <svg
-              className="w-4 h-4"
+              className="w-3 h-3"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -277,31 +293,31 @@ export default function OddsView() {
           </button>
         </div>
 
-        <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 w-full">
-          <h2 className="font-medium mb-3">Utmaning:</h2>
-          <p className="text-foreground/80 mb-4">{odds.description}</p>
-          <div className="text-sm text-foreground/60">
+        <div className="bg-gray-50 dark:bg-gray-900 rounded p-2 w-full">
+          <h2 className="font-medium mb-1 text-xs">Utmaning:</h2>
+          <p className="text-foreground/80 mb-1 text-xs">{odds.description}</p>
+          <div className="text-xs text-foreground/60">
             Max värde: {odds.max}
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg p-6 w-full">
-          <div className="grid grid-cols-2 gap-6 mb-6">
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded p-2 w-full">
+          <div className="grid grid-cols-2 gap-2 mb-2">
             <div className="text-center">
-              <h3 className="font-medium mb-2">Utmanare</h3>
-              <p className="text-sm text-foreground/60 mb-1">
+              <h3 className="font-medium mb-1 text-xs">Utmanare</h3>
+              <p className="text-xs text-foreground/60 mb-1">
                 {odds.challenger.name}
               </p>
-              <p className="text-2xl font-bold text-foreground">
+              <p className="text-base font-bold text-foreground">
                 {odds.gameResult.challengerResponse}
               </p>
             </div>
             <div className="text-center">
-              <h3 className="font-medium mb-2">Utmanad</h3>
-              <p className="text-sm text-foreground/60 mb-1">
+              <h3 className="font-medium mb-1 text-xs">Utmanad</h3>
+              <p className="text-xs text-foreground/60 mb-1">
                 {odds.challengee?.name}
               </p>
-              <p className="text-2xl font-bold text-foreground">
+              <p className="text-base font-bold text-foreground">
                 {odds.gameResult.challengeeResponse}
               </p>
             </div>
@@ -309,7 +325,7 @@ export default function OddsView() {
 
           <div className="text-center">
             <div
-              className={`text-2xl font-bold mb-2 ${
+              className={`text-sm font-bold mb-1 ${
                 odds.gameResult.winner === "challenger"
                   ? "text-green-600 dark:text-green-400"
                   : "text-blue-600 dark:text-blue-400"
@@ -319,7 +335,7 @@ export default function OddsView() {
                 ? "Utmanaren vinner!"
                 : "Den utmanade vinner!"}
             </div>
-            <p className="text-sm text-foreground/60">
+            <p className="text-xs text-foreground/60 mb-2">
               {odds.gameResult.challengerResponse ===
               odds.gameResult.challengeeResponse
                 ? "Samma nummer - utmanaren vinner!"
@@ -327,6 +343,13 @@ export default function OddsView() {
             </p>
           </div>
         </div>
+
+        <button
+          onClick={() => router.push("/")}
+          className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-gray-600 text-white hover:bg-gray-700 dark:bg-gray-500 dark:hover:bg-gray-600 font-medium text-sm h-10 px-5 w-full"
+        >
+          Tillbaka till startsidan
+        </button>
       </div>
     );
   }
@@ -334,18 +357,18 @@ export default function OddsView() {
   // Challenger view
   if (isChallenger) {
     return (
-      <div className="font-sans flex flex-col items-center justify-center min-h-screen p-8 gap-8 max-w-2xl mx-auto">
+      <div className="font-sans flex flex-col items-center justify-center min-h-screen p-4 gap-4 max-w-sm mx-auto">
         <div className="text-center">
-          <h1 className="text-2xl font-medium text-foreground mb-2">
+          <h1 className="text-lg font-medium text-foreground mb-2">
             Din utmaning
           </h1>
-          <p className="text-sm text-foreground/60 mb-3">Kod: {odds.code}</p>
+          <p className="text-xs text-foreground/60 mb-2">Kod: {odds.code}</p>
           <button
             onClick={copyUrlToClipboard}
-            className="inline-flex items-center gap-2 text-sm bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 px-3 py-2 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+            className="inline-flex items-center gap-1 text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 px-2 py-1 rounded hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
           >
             <svg
-              className="w-4 h-4"
+              className="w-3 h-3"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -361,53 +384,53 @@ export default function OddsView() {
           </button>
         </div>
 
-        <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 w-full">
-          <h2 className="font-medium mb-3">Beskrivning:</h2>
-          <p className="text-foreground/80">{odds.description}</p>
+        <div className="bg-gray-50 dark:bg-gray-900 rounded p-3 w-full">
+          <h2 className="font-medium mb-2 text-sm">Beskrivning:</h2>
+          <p className="text-foreground/80 text-xs">{odds.description}</p>
         </div>
 
         {odds.max === undefined ? (
           <div className="text-center">
             <div className="animate-pulse">
-              <div className="text-foreground/60">
+              <div className="text-foreground/60 text-sm">
                 Väntar på att mottagaren ska ange max värde...
               </div>
-              <div className="text-sm text-foreground/40 mt-2">
+              <div className="text-xs text-foreground/40 mt-1">
                 Uppdaterar automatiskt
               </div>
             </div>
           </div>
         ) : odds.challenger.response === undefined ? (
-          <div className="w-full max-w-md">
-            <div className="text-center mb-4">
-              <div className="text-green-600 dark:text-green-400 font-medium mb-2">
+          <div className="w-full max-w-xs">
+            <div className="text-center mb-3">
+              <div className="text-green-600 dark:text-green-400 font-medium mb-1 text-sm">
                 Max värde: {odds.max}
               </div>
-              <h3 className="font-medium mb-2">Välj ditt nummer</h3>
-              <p className="text-sm text-foreground/60">
-                Välj ett nummer mellan 0 och {odds.max + 1}
+              <h3 className="font-medium mb-1 text-sm">Välj ditt nummer</h3>
+              <p className="text-xs text-foreground/60">
+                Välj ett nummer mellan 1 och {odds.max}
               </p>
             </div>
 
             <form
               onSubmit={handleGameResponseSubmit}
-              className="flex flex-col gap-4 items-center"
+              className="flex flex-col gap-3 items-center"
             >
               <input
                 type="number"
-                placeholder={`0 - ${odds.max + 1}`}
+                placeholder={`1 - ${odds.max}`}
                 value={gameResponse}
                 onChange={(e) => setGameResponse(e.target.value)}
-                className="border border-black/[.08] dark:border-white/[.145] rounded px-4 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-foreground text-center min-w-[200px]"
+                className="border border-black/[.08] dark:border-white/[.145] rounded px-3 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-foreground text-center w-full text-sm"
                 required
-                min="0"
-                max={odds.max + 1}
+                min="1"
+                max={odds.max}
               />
 
               <button
                 type="submit"
                 disabled={isSubmittingResponse || !gameResponse.trim()}
-                className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-base h-12 px-6 disabled:opacity-50"
+                className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm h-10 px-5 w-full"
               >
                 {isSubmittingResponse ? "Skickar..." : "Skicka svar"}
               </button>
@@ -415,21 +438,21 @@ export default function OddsView() {
           </div>
         ) : odds.challengee?.response === undefined ? (
           <div className="text-center">
-            <div className="text-green-600 dark:text-green-400 font-medium mb-2">
+            <div className="text-green-600 dark:text-green-400 font-medium mb-1 text-sm">
               Ditt svar: {odds.challenger.response}
             </div>
             <div className="animate-pulse">
-              <div className="text-foreground/60">
+              <div className="text-foreground/60 text-sm">
                 Väntar på mottagarens svar...
               </div>
-              <div className="text-sm text-foreground/40 mt-2">
+              <div className="text-xs text-foreground/40 mt-1">
                 Uppdaterar automatiskt
               </div>
             </div>
           </div>
         ) : (
           <div className="text-center">
-            <div className="text-green-600 dark:text-green-400 font-medium">
+            <div className="text-green-600 dark:text-green-400 font-medium text-sm">
               Båda har svarat! Beräknar resultat...
             </div>
           </div>
@@ -440,21 +463,21 @@ export default function OddsView() {
 
   // Challengee view
   return (
-    <div className="font-sans flex flex-col items-center justify-center min-h-screen p-8 gap-8 max-w-2xl mx-auto">
+    <div className="font-sans flex flex-col items-center justify-center min-h-screen p-4 gap-4 max-w-sm mx-auto">
       <div className="text-center">
-        <h1 className="text-2xl font-medium text-foreground mb-2">
+        <h1 className="text-lg font-medium text-foreground mb-2">
           Du har blivit utmanad!
         </h1>
-        <p className="text-sm text-foreground/60 mb-1">Kod: {odds.code}</p>
-        <p className="text-sm text-foreground/60 mb-3">
+        <p className="text-xs text-foreground/60 mb-1">Kod: {odds.code}</p>
+        <p className="text-xs text-foreground/60 mb-2">
           Av: {odds.challenger.name}
         </p>
         <button
           onClick={copyUrlToClipboard}
-          className="inline-flex items-center gap-2 text-sm bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 px-3 py-2 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+          className="inline-flex items-center gap-1 text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 px-2 py-1 rounded hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
         >
           <svg
-            className="w-4 h-4"
+            className="w-3 h-3"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -470,19 +493,19 @@ export default function OddsView() {
         </button>
       </div>
 
-      <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 w-full">
-        <h2 className="font-medium mb-3">Utmaning:</h2>
-        <p className="text-foreground/80">{odds.description}</p>
+      <div className="bg-gray-50 dark:bg-gray-900 rounded p-3 w-full">
+        <h2 className="font-medium mb-2 text-sm">Utmaning:</h2>
+        <p className="text-foreground/80 text-xs">{odds.description}</p>
       </div>
 
       {odds.max === undefined ? (
         <form
           onSubmit={handleMaxSubmit}
-          className="flex flex-col gap-4 items-center w-full max-w-md"
+          className="flex flex-col gap-3 items-center w-full max-w-xs"
         >
           <div className="text-center">
-            <h3 className="font-medium mb-2">Ange max värde</h3>
-            <p className="text-sm text-foreground/60 mb-4">
+            <h3 className="font-medium mb-1 text-sm">Ange max värde</h3>
+            <p className="text-xs text-foreground/60 mb-3">
               Vad är det högsta värdet du accepterar?
             </p>
           </div>
@@ -492,7 +515,7 @@ export default function OddsView() {
             placeholder="Max värde"
             value={maxValue}
             onChange={(e) => setMaxValue(e.target.value)}
-            className="border border-black/[.08] dark:border-white/[.145] rounded px-4 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-foreground text-center min-w-[200px]"
+            className="border border-black/[.08] dark:border-white/[.145] rounded px-3 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-foreground text-center w-full text-sm"
             required
             min="1"
           />
@@ -500,42 +523,42 @@ export default function OddsView() {
           <button
             type="submit"
             disabled={isSubmittingMax || !maxValue.trim()}
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-base h-12 px-6 disabled:opacity-50"
+            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm h-10 px-5 w-full disabled:opacity-50"
           >
             {isSubmittingMax ? "Skickar..." : "Skicka max värde"}
           </button>
         </form>
       ) : odds.challengee?.response === undefined ? (
-        <div className="w-full max-w-md">
-          <div className="text-center mb-4">
-            <div className="text-green-600 dark:text-green-400 font-medium mb-2">
+        <div className="w-full max-w-xs">
+          <div className="text-center mb-3">
+            <div className="text-green-600 dark:text-green-400 font-medium mb-1 text-sm">
               Max värde: {odds.max}
             </div>
-            <h3 className="font-medium mb-2">Välj ditt nummer</h3>
-            <p className="text-sm text-foreground/60">
-              Välj ett nummer mellan 0 och {odds.max + 1}
+            <h3 className="font-medium mb-1 text-sm">Välj ditt nummer</h3>
+            <p className="text-xs text-foreground/60">
+              Välj ett nummer mellan 1 och {odds.max}
             </p>
           </div>
 
           <form
             onSubmit={handleGameResponseSubmit}
-            className="flex flex-col gap-4 items-center"
+            className="flex flex-col gap-3 items-center"
           >
             <input
               type="number"
-              placeholder={`0 - ${odds.max + 1}`}
+              placeholder={`1 - ${odds.max}`}
               value={gameResponse}
               onChange={(e) => setGameResponse(e.target.value)}
-              className="border border-black/[.08] dark:border-white/[.145] rounded px-4 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-foreground text-center min-w-[200px]"
+              className="border border-black/[.08] dark:border-white/[.145] rounded px-3 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-foreground text-center w-full text-sm"
               required
-              min="0"
-              max={odds.max + 1}
+              min="1"
+              max={odds.max}
             />
 
             <button
               type="submit"
               disabled={isSubmittingResponse || !gameResponse.trim()}
-              className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-base h-12 px-6 disabled:opacity-50"
+              className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm h-10 px-5 w-full disabled:opacity-50"
             >
               {isSubmittingResponse ? "Skickar..." : "Skicka svar"}
             </button>
@@ -543,21 +566,21 @@ export default function OddsView() {
         </div>
       ) : odds.challenger.response === undefined ? (
         <div className="text-center">
-          <div className="text-green-600 dark:text-green-400 font-medium mb-2">
+          <div className="text-green-600 dark:text-green-400 font-medium mb-1 text-sm">
             Ditt svar: {odds.challengee.response}
           </div>
           <div className="animate-pulse">
-            <div className="text-foreground/60">
+            <div className="text-foreground/60 text-sm">
               Väntar på utmanarens svar...
             </div>
-            <div className="text-sm text-foreground/40 mt-2">
+            <div className="text-xs text-foreground/40 mt-1">
               Uppdaterar automatiskt
             </div>
           </div>
         </div>
       ) : (
         <div className="text-center">
-          <div className="text-green-600 dark:text-green-400 font-medium">
+          <div className="text-green-600 dark:text-green-400 font-medium text-sm">
             Båda har svarat! Beräknar resultat...
           </div>
         </div>

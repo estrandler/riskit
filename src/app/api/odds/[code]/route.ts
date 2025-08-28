@@ -3,11 +3,11 @@ import OddsRepository from "@/lib/odds-repository";
 
 export async function GET(
   request: Request,
-  { params }: { params: { code: string } }
+  { params }: { params: Promise<{ code: string }> }
 ) {
   try {
     const repository = OddsRepository.getInstance();
-    const { code } = params;
+    const { code } = await params;
 
     // Get odds document by code
     const oddsDocument = repository.getByCode(code);

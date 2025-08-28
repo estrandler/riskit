@@ -3,11 +3,11 @@ import OddsRepository from "@/lib/odds-repository";
 
 export async function PUT(
   request: Request,
-  { params }: { params: { code: string } }
+  { params }: { params: Promise<{ code: string }> }
 ) {
   try {
     const repository = OddsRepository.getInstance();
-    const { code } = params;
+    const { code } = await params;
     const body = await request.json();
     const { max, challengeeName } = body;
 
