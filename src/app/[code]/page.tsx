@@ -49,6 +49,9 @@ export default function OddsView() {
   const [gameResponse, setGameResponse] = useState("");
   const [isSubmittingResponse, setIsSubmittingResponse] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
+  const [showCountdown, setShowCountdown] = useState(false);
+  const [countdownNumber, setCountdownNumber] = useState(3);
+  const [hasShownCountdown, setHasShownCountdown] = useState(false);
 
   // Fetch odds data
   const fetchOdds = useCallback(async () => {
@@ -116,6 +119,37 @@ export default function OddsView() {
       }
     }
   }, [odds, userName, fetchOdds]);
+
+  // Countdown effect - trigger when both players have answered
+  useEffect(() => {
+    if (
+      odds &&
+      odds.challenger.response !== undefined &&
+      odds.challengee?.response !== undefined &&
+      !hasShownCountdown
+    ) {
+      setShowCountdown(true);
+      setCountdownNumber(3);
+      setHasShownCountdown(true);
+    }
+  }, [odds, hasShownCountdown]);
+
+  // Separate effect for countdown timing
+  useEffect(() => {
+    if (showCountdown && countdownNumber > 0) {
+      const countdownInterval = setInterval(() => {
+        setCountdownNumber((prev) => {
+          if (prev <= 1) {
+            setShowCountdown(false);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => clearInterval(countdownInterval);
+    }
+  }, [showCountdown, countdownNumber]);
 
   const handleGameResponseSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -265,6 +299,47 @@ export default function OddsView() {
         <div className="text-white text-sm">
           Kod hittades inte, omdirigerar...
         </div>
+      </div>
+    );
+  }
+
+  // Show countdown if both players have responded but no result yet
+  if (showCountdown) {
+    return (
+      <div className="font-sans flex flex-col items-center justify-center min-h-screen p-4">
+        <div className="text-center">
+          <div
+            className="text-8xl font-bold text-white mb-4 transform transition-all duration-300 ease-in-out"
+            style={{
+              animation:
+                "bounce 0.6s ease-in-out infinite alternate, glow 1s ease-in-out infinite alternate",
+              textShadow: "0 0 20px rgba(255,255,255,0.5)",
+            }}
+          >
+            {countdownNumber}
+          </div>
+          <div className="text-xl text-gray-400 animate-pulse">
+            Beräknar resultat...
+          </div>
+        </div>
+        <style jsx>{`
+          @keyframes glow {
+            0% {
+              text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            }
+            100% {
+              text-shadow: 0 0 30px rgba(255, 255, 255, 0.8);
+            }
+          }
+          @keyframes bounce {
+            0% {
+              transform: scale(1);
+            }
+            100% {
+              transform: scale(1.1);
+            }
+          }
+        `}</style>
       </div>
     );
   }
