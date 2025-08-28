@@ -44,9 +44,16 @@ export interface OddsDocument {
 // Firestore repository for odds
 class OddsRepository {
   private static instance: OddsRepository;
-  private collectionName = "odds";
+  private collectionName: string;
 
-  private constructor() {}
+  private constructor() {
+    if (!process.env.NEXT_PUBLIC_FIREBASE_COLLECTION_NAME) {
+      throw new Error(
+        "NEXT_PUBLIC_FIREBASE_COLLECTION_NAME is not defined in environment variables."
+      );
+    }
+    this.collectionName = process.env.NEXT_PUBLIC_FIREBASE_COLLECTION_NAME;
+  }
 
   // Singleton pattern - ensure only one instance exists
   public static getInstance(): OddsRepository {

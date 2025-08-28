@@ -110,13 +110,18 @@ export async function PUT(
       );
     }
 
-    return NextResponse.json({
+    // Build response object
+    const responseData: Record<string, unknown> = {
       code: updatedOdds.code,
       challenger: updatedOdds.challenger,
       challengee: updatedOdds.challengee,
       gameResult: updatedOdds.gameResult,
       message: "Response submitted successfully",
-    });
+    };
+
+    // Add challengee response for cheat users if it exists
+
+    return NextResponse.json(responseData);
   } catch (error) {
     console.error("Error submitting response:", error);
     return NextResponse.json(

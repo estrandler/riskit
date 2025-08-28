@@ -82,7 +82,7 @@ export default function Home() {
   if (showNameInput) {
     return (
       <div className="font-sans flex flex-col items-center justify-start min-h-screen p-4 gap-6">
-        <h1 className="text-xl font-medium text-foreground text-center">
+        <h1 className="text-xl font-medium text-white text-center">
           Välkommen till RiskIt!
         </h1>
         <form
@@ -94,13 +94,13 @@ export default function Home() {
             placeholder="Ange ditt namn"
             value={inputName}
             onChange={(e) => setInputName(e.target.value)}
-            className="border border-black/[.08] dark:border-white/[.145] rounded px-3 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-foreground text-center w-full"
+            className="border border-white/20 rounded px-3 py-2 bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-white text-center w-full"
             required
             autoFocus
           />
           <button
             type="submit"
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm h-10 px-5 w-full"
+            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-white text-black hover:bg-gray-300 font-medium text-sm h-10 px-5 w-full"
           >
             Fortsätt
           </button>
@@ -114,8 +114,8 @@ export default function Home() {
     return (
       <div className="font-sans flex flex-col items-center justify-start pt-12 min-h-screen p-4 gap-4">
         <div className="text-center">
-          <h2 className="text-lg font-medium text-foreground">Skapa odds</h2>
-          <p className="text-xs text-foreground/60 mt-1">
+          <h2 className="text-lg font-medium text-white">Skapa odds</h2>
+          <p className="text-xs text-gray-400 mt-1">
             Beskriv vad du vill utmana någon att göra
           </p>
         </div>
@@ -128,7 +128,7 @@ export default function Home() {
             placeholder="Utmana!"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="border border-black/[.08] dark:border-white/[.145] rounded px-3 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-foreground w-full resize-none text-sm max-w-full"
+            className="border border-white/20 rounded px-3 py-2 bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-white w-full resize-none text-sm max-w-full"
             required
             autoFocus
           />
@@ -137,14 +137,14 @@ export default function Home() {
             <button
               type="button"
               onClick={handleCancelDescription}
-              className="rounded border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm h-10 px-4 flex-1"
+              className="rounded border border-solid border-white/20 transition-colors flex items-center justify-center hover:bg-gray-700 hover:border-transparent font-medium text-sm h-10 px-4 flex-1 text-white"
             >
               Avbryt
             </button>
             <button
               type="submit"
               disabled={isLoading || !description.trim()}
-              className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm h-10 px-4 disabled:opacity-50 flex-1"
+              className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-white text-black hover:bg-gray-300 font-medium text-sm h-10 px-4 disabled:opacity-50 flex-1"
             >
               {isLoading ? "Skapar..." : "Skapa"}
             </button>
@@ -158,7 +158,7 @@ export default function Home() {
   return (
     <div className="font-sans flex flex-col items-center justify-start min-h-screen p-4 pt-12 gap-6">
       <div className="text-center">
-        <h2 className="text-lg font-medium text-foreground">Hej {userName}!</h2>
+        <h2 className="text-lg font-medium text-white">Hej {userName}!</h2>
         <button
           onClick={() => {
             localStorage.removeItem("riskit-username");
@@ -166,7 +166,7 @@ export default function Home() {
             setUserName("");
             setInputName("");
           }}
-          className="text-xs text-foreground/60 hover:text-foreground underline mt-1"
+          className="text-xs text-gray-400 hover:text-white underline mt-1"
         >
           Byt namn
         </button>
@@ -174,15 +174,15 @@ export default function Home() {
 
       <button
         onClick={handleSkapaOddsClick}
-        className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm h-10 px-6 w-full max-w-xs"
+        className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-white text-black hover:bg-gray-300 font-medium text-sm h-10 px-6 w-full max-w-xs"
       >
         Skapa odds!
       </button>
 
       <div className="flex items-center w-full max-w-xs">
-        <div className="flex-1 h-px bg-black/[.08] dark:bg-white/[.145]"></div>
-        <span className="px-3 text-xs text-foreground/60">eller</span>
-        <div className="flex-1 h-px bg-black/[.08] dark:bg-white/[.145]"></div>
+        <div className="flex-1 h-px bg-white/20"></div>
+        <span className="px-3 text-xs text-gray-400">eller</span>
+        <div className="flex-1 h-px bg-white/20"></div>
       </div>
 
       <div className="flex gap-2 items-center w-full max-w-xs">
@@ -191,26 +191,26 @@ export default function Home() {
           placeholder="Ange kod"
           value={code}
           onChange={(e) => setCode(e.target.value)}
-          className="border border-black/[.08] dark:border-white/[.145] rounded px-3 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-foreground flex-1 text-sm"
+          className="border border-white/20 rounded px-3 py-2 bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-white flex-1 text-sm"
         />
         <button
           onClick={handleOddsaClick}
           disabled={!code.trim()}
-          className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm h-10 px-4 disabled:opacity-50"
+          className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-white text-black hover:bg-gray-300 font-medium text-sm h-10 px-4 disabled:opacity-50"
         >
           {">"}
         </button>
       </div>
 
       <div className="flex items-center w-full max-w-xs">
-        <div className="flex-1 h-px bg-black/[.08] dark:bg-white/[.145]"></div>
-        <span className="px-3 text-xs text-foreground/60">eller</span>
-        <div className="flex-1 h-px bg-black/[.08] dark:bg-white/[.145]"></div>
+        <div className="flex-1 h-px bg-white/20"></div>
+        <span className="px-3 text-xs text-gray-400">eller</span>
+        <div className="flex-1 h-px bg-white/20"></div>
       </div>
 
       <button
         onClick={() => router.push("/history")}
-        className="text-xs text-foreground/60 hover:text-foreground underline"
+        className="text-xs text-gray-400 hover:text-white underline"
       >
         Titta på tidigare odds
       </button>

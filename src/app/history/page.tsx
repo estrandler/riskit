@@ -60,14 +60,14 @@ export default function HistoryPage() {
       (!isChallenger && odds.gameResult.winner === "challengee");
 
     return userWon
-      ? "bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-400"
-      : "bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-400";
+      ? "bg-green-900/20 text-green-400"
+      : "bg-red-900/20 text-red-400";
   };
 
   if (loading) {
     return (
       <div className="font-sans flex flex-col items-center justify-start min-h-screen p-4 pt-20">
-        <div className="text-foreground text-sm">Laddar...</div>
+        <div className="text-white text-sm">Laddar...</div>
       </div>
     );
   }
@@ -83,48 +83,49 @@ export default function HistoryPage() {
   return (
     <div className="font-sans flex flex-col items-center justify-start min-h-screen p-4 pt-8 gap-4 max-w-4xl mx-auto">
       <div className="text-center mb-4">
-        <h1 className="text-xl font-bold text-foreground mb-2">
-          Tidigare odds
-        </h1>
+        <h1 className="text-xl font-bold text-white mb-2">Tidigare odds</h1>
         <button
           onClick={() => router.push("/")}
-          className="text-xs text-foreground/60 hover:text-foreground underline"
+          className="text-xs text-gray-400 hover:text-white underline"
         >
           Tillbaka till startsidan
         </button>
       </div>
 
       {completedOdds.length === 0 ? (
-        <div className="text-center text-foreground/60 text-sm">
+        <div className="text-center text-gray-400 text-sm">
           Inga avslutade odds hittades
         </div>
       ) : (
         <div className="w-full overflow-x-auto">
-          <table className="w-full border-collapse border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+          <table className="w-full border-collapse border border-gray-700 rounded-lg overflow-hidden">
             <thead>
-              <tr className="bg-gray-50 dark:bg-gray-800">
-                <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left text-sm font-medium text-foreground">
+              <tr className="bg-gray-800">
+                <th className="border border-gray-700 px-4 py-2 text-left text-sm font-medium text-white">
+                  Beskrivning
+                </th>
+                <th className="border border-gray-700 px-4 py-2 text-left text-sm font-medium text-white">
                   Odds
                 </th>
-                <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left text-sm font-medium text-foreground">
+                <th className="border border-gray-700 px-4 py-2 text-left text-sm font-medium text-white">
                   Utmanare
                 </th>
-                <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left text-sm font-medium text-foreground">
+                <th className="border border-gray-700 px-4 py-2 text-left text-sm font-medium text-white">
                   Utmanad
                 </th>
               </tr>
             </thead>
             <tbody>
               {completedOdds.map((odds) => (
-                <tr
-                  key={odds.code}
-                  className="hover:bg-gray-50 dark:hover:bg-gray-800/50"
-                >
-                  <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-sm text-foreground">
+                <tr key={odds.code} className="hover:bg-gray-800/50">
+                  <td className="border border-gray-700 px-4 py-2 text-sm text-white">
                     {odds.description}
                   </td>
+                  <td className="border border-gray-700 px-4 py-2 text-sm text-white">
+                    {odds.max}
+                  </td>
                   <td
-                    className={`border border-gray-200 dark:border-gray-700 px-4 py-2 text-sm font-medium ${getCellColor(
+                    className={`border border-gray-700 px-4 py-2 text-sm font-medium ${getCellColor(
                       odds,
                       true
                     )}`}
@@ -137,7 +138,7 @@ export default function HistoryPage() {
                     )}
                   </td>
                   <td
-                    className={`border border-gray-200 dark:border-gray-700 px-4 py-2 text-sm font-medium ${getCellColor(
+                    className={`border border-gray-700 px-4 py-2 text-sm font-medium ${getCellColor(
                       odds,
                       false
                     )}`}

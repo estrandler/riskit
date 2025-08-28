@@ -132,7 +132,7 @@ export default function WinCelebration({
       <div className="fixed inset-0 pointer-events-none z-60 flex items-center justify-center">
         <div
           className={`
-            text-6xl font-bold text-white drop-shadow-lg
+            text-6xl font-bold text-white drop-shadow-lg text-center
             transform transition-all duration-500 ease-in-out
             ${isFlashing ? "scale-110 opacity-100" : "scale-100 opacity-90"}
             ${isWin ? "text-yellow-300" : "text-red-300"}
