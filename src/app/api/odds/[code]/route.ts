@@ -10,7 +10,7 @@ export async function GET(
     const { code } = await params;
 
     // Get odds document by code
-    const oddsDocument = repository.getByCode(code);
+    const oddsDocument = await repository.getByCode(code);
 
     if (!oddsDocument) {
       return NextResponse.json({ error: "Odds not found" }, { status: 404 });

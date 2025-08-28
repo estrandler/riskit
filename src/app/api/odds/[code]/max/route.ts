@@ -27,7 +27,7 @@ export async function PUT(
     }
 
     // Get existing odds document
-    const existingOdds = repository.getByCode(code);
+    const existingOdds = await repository.getByCode(code);
     if (!existingOdds) {
       return NextResponse.json({ error: "Odds not found" }, { status: 404 });
     }
@@ -41,7 +41,7 @@ export async function PUT(
     }
 
     // Update odds with max value and challengee info
-    const updatedOdds = repository.update(code, {
+    const updatedOdds = await repository.update(code, {
       max,
       challengee: {
         name: challengeeName.trim(),

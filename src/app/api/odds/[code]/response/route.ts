@@ -27,7 +27,7 @@ export async function PUT(
     }
 
     // Get existing odds document
-    const existingOdds = repository.getByCode(code);
+    const existingOdds = await repository.getByCode(code);
     if (!existingOdds) {
       return NextResponse.json({ error: "Odds not found" }, { status: 404 });
     }
@@ -101,7 +101,7 @@ export async function PUT(
       };
     }
 
-    const updatedOdds = repository.update(code, updates);
+    const updatedOdds = await repository.update(code, updates);
 
     if (!updatedOdds) {
       return NextResponse.json(

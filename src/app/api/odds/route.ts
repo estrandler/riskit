@@ -18,14 +18,14 @@ function generateCode(): string {
 }
 
 // Generate a unique code that doesn't already exist
-function generateUniqueCode(): string {
+async function generateUniqueCode(): Promise<string> {
   const repository = OddsRepository.getInstance();
   let code: string;
 
   // Keep generating until we get a unique code
   do {
     code = generateCode();
-  } while (repository.exists(code));
+  } while (await repository.exists(code));
 
   return code;
 }
@@ -47,10 +47,10 @@ export async function POST(request: Request) {
     }
 
     // Generate a new unique 4-character code
-    const code = generateUniqueCode();
+    const code = await generateUniqueCode();
 
-    // Save the code to the in-memory repository with description and challenger
-    const oddsDocument = repository.create(
+    // Save the code to the Firestore repository with description and challenger
+    const oddsDocument = await repository.create(
       code,
       description.trim(),
       challengerName.trim()

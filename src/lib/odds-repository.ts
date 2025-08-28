@@ -1,3 +1,18 @@
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  query,
+  where,
+  Timestamp,
+  DocumentData,
+} from "firebase/firestore";
+import { db } from "./firebase";
+
 // Types for our odds document
 export interface Challenger {
   name: string;
@@ -26,10 +41,10 @@ export interface OddsDocument {
   createdAt: Date;
 }
 
-// In-memory repository singleton for odds
+// Firestore repository for odds
 class OddsRepository {
   private static instance: OddsRepository;
-  private odds: Map<string, OddsDocument> = new Map();
+  private collectionName = "odds";
 
   private constructor() {}
 
@@ -41,14 +56,57 @@ class OddsRepository {
     return OddsRepository.instance;
   }
 
+  // Convert Firestore document to OddsDocument
+  private convertFromFirestore(doc: DocumentData, code: string): OddsDocument {
+    return {
+      ...doc,
+      code,
+      createdAt: doc.createdAt?.toDate() || new Date(),
+      gameResult: doc.gameResult
+        ? {
+            ...doc.gameResult,
+            completedAt: doc.gameResult.completedAt?.toDate() || new Date(),
+          }
+        : undefined,
+    } as OddsDocument;
+  }
+
+  // Convert OddsDocument to Firestore format
+  private convertToFirestore(
+    document: Omit<OddsDocument, "code">
+  ): DocumentData {
+    const firestoreDoc: DocumentData = {
+      description: document.description,
+      challenger: document.challenger,
+      createdAt: Timestamp.fromDate(document.createdAt),
+    };
+
+    // Only add optional fields if they exist
+    if (document.challengee) {
+      firestoreDoc.challengee = document.challengee;
+    }
+
+    if (document.max !== undefined) {
+      firestoreDoc.max = document.max;
+    }
+
+    if (document.gameResult) {
+      firestoreDoc.gameResult = {
+        ...document.gameResult,
+        completedAt: Timestamp.fromDate(document.gameResult.completedAt),
+      };
+    }
+
+    return firestoreDoc;
+  }
+
   // Create a new odds document
-  public create(
+  public async create(
     code: string,
     description: string,
     challengerName: string
-  ): OddsDocument {
-    const document: OddsDocument = {
-      code,
+  ): Promise<OddsDocument> {
+    const document: Omit<OddsDocument, "code"> = {
       description,
       challenger: {
         name: challengerName,
@@ -56,48 +114,134 @@ class OddsRepository {
       createdAt: new Date(),
     };
 
-    this.odds.set(code, document);
-    return document;
+    const docRef = doc(db, this.collectionName, code);
+    await setDoc(docRef, this.convertToFirestore(document));
+
+    return { ...document, code };
   }
 
   // Get odds document by code
-  public getByCode(code: string): OddsDocument | undefined {
-    return this.odds.get(code);
+  public async getByCode(code: string): Promise<OddsDocument | undefined> {
+    try {
+      const docRef = doc(db, this.collectionName, code);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        return this.convertFromFirestore(docSnap.data(), code);
+      }
+      return undefined;
+    } catch (error) {
+      console.error("Error getting document:", error);
+      return undefined;
+    }
   }
 
   // Get all odds documents
-  public getAll(): OddsDocument[] {
-    return Array.from(this.odds.values());
+  public async getAll(): Promise<OddsDocument[]> {
+    try {
+      const querySnapshot = await getDocs(collection(db, this.collectionName));
+      return querySnapshot.docs.map((doc) =>
+        this.convertFromFirestore(doc.data(), doc.id)
+      );
+    } catch (error) {
+      console.error("Error getting all documents:", error);
+      return [];
+    }
   }
 
   // Check if code exists
-  public exists(code: string): boolean {
-    return this.odds.has(code);
+  public async exists(code: string): Promise<boolean> {
+    try {
+      const docRef = doc(db, this.collectionName, code);
+      const docSnap = await getDoc(docRef);
+      return docSnap.exists();
+    } catch (error) {
+      console.error("Error checking if document exists:", error);
+      return false;
+    }
   }
 
   // Update odds document
-  public update(
+  public async update(
     code: string,
-    updates: Partial<OddsDocument>
-  ): OddsDocument | undefined {
-    const existing = this.odds.get(code);
-    if (!existing) {
+    updates: Partial<Omit<OddsDocument, "code">>
+  ): Promise<OddsDocument | undefined> {
+    try {
+      const docRef = doc(db, this.collectionName, code);
+
+      // Convert updates to Firestore format
+      const firestoreUpdates: Record<string, unknown> = {};
+
+      // Only add fields that are actually being updated
+      Object.keys(updates).forEach((key) => {
+        const value = updates[key as keyof typeof updates];
+        if (value !== undefined) {
+          if (key === "createdAt" && value instanceof Date) {
+            firestoreUpdates[key] = Timestamp.fromDate(value);
+          } else if (
+            key === "gameResult" &&
+            value &&
+            typeof value === "object" &&
+            "completedAt" in value
+          ) {
+            firestoreUpdates[key] = {
+              ...value,
+              completedAt: Timestamp.fromDate(value.completedAt as Date),
+            };
+          } else {
+            firestoreUpdates[key] = value;
+          }
+        }
+      });
+
+      await updateDoc(docRef, firestoreUpdates);
+
+      // Return the updated document
+      return await this.getByCode(code);
+    } catch (error) {
+      console.error("Error updating document:", error);
       return undefined;
     }
-
-    const updated = { ...existing, ...updates };
-    this.odds.set(code, updated);
-    return updated;
   }
 
   // Delete odds document
-  public delete(code: string): boolean {
-    return this.odds.delete(code);
+  public async delete(code: string): Promise<boolean> {
+    try {
+      const docRef = doc(db, this.collectionName, code);
+      await deleteDoc(docRef);
+      return true;
+    } catch (error) {
+      console.error("Error deleting document:", error);
+      return false;
+    }
   }
 
   // Get total count
-  public count(): number {
-    return this.odds.size;
+  public async count(): Promise<number> {
+    try {
+      const querySnapshot = await getDocs(collection(db, this.collectionName));
+      return querySnapshot.size;
+    } catch (error) {
+      console.error("Error counting documents:", error);
+      return 0;
+    }
+  }
+
+  // Get completed games only
+  public async getCompleted(): Promise<OddsDocument[]> {
+    try {
+      const q = query(
+        collection(db, this.collectionName),
+        where("gameResult", "!=", null)
+      );
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map((doc) =>
+        this.convertFromFirestore(doc.data(), doc.id)
+      );
+    } catch (error) {
+      console.error("Error getting completed games:", error);
+      return [];
+    }
   }
 }
 
