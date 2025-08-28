@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import MotivationalMessage from "@/components/MotivationalMessage";
+import WinCelebration from "@/components/WinCelebration";
 
 interface Challenger {
   name: string;
@@ -268,72 +269,77 @@ export default function OddsView() {
 
   // Show game result if completed
   if (odds.gameResult) {
+    const userWon =
+      (isChallenger && odds.gameResult.winner === "challenger") ||
+      (!isChallenger && odds.gameResult.winner === "challengee");
+
     return (
-      <div className="font-sans flex flex-col items-center justify-start min-h-screen p-4 pt-8 gap-4 max-w-sm mx-auto">
-        <div className="text-center">
-          <h1 className="text-xl font-bold text-foreground mb-2">Resultat!</h1>
-        </div>
-
-        <div className="bg-gray-50 dark:bg-gray-900 rounded p-2 w-full">
-          <p className="text-foreground/80 font-medium text-md text-center">
-            {odds.description}
-          </p>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded p-2 w-full">
-          <div className="grid grid-cols-2 gap-2 mb-2">
-            <div className="text-center">
-              <p className="text-xs text-foreground/60 mb-1">
-                {odds.challenger.name}
-              </p>
-              <p className="text-base font-bold text-foreground">
-                {odds.gameResult.challengerResponse}
-              </p>
-            </div>
-            <div className="text-center">
-              <p className="text-xs text-foreground/60 mb-1">
-                {odds.challengee?.name}
-              </p>
-              <p className="text-base font-bold text-foreground">
-                {odds.gameResult.challengeeResponse}
-              </p>
-            </div>
-          </div>
-
+      <>
+        <WinCelebration isActive={true} isWin={userWon} />
+        <div className="font-sans flex flex-col items-center justify-start min-h-screen p-4 pt-8 gap-4 max-w-sm mx-auto relative z-10">
           <div className="text-center">
-            <div
-              className={`text-sm font-bold mb-1 ${
-                odds.gameResult.winner === "challenger"
-                  ? "text-green-600 dark:text-green-400"
-                  : "text-blue-600 dark:text-blue-400"
-              }`}
-            >
-              {(() => {
-                const userWon =
-                  (isChallenger && odds.gameResult.winner === "challenger") ||
-                  (!isChallenger && odds.gameResult.winner === "challengee");
+            <h1 className="text-xl font-bold text-foreground mb-2">
+              Resultat!
+            </h1>
+          </div>
 
-                if (isChallenger) {
-                  return userWon
-                    ? "Dags att se till att sopan gör det!"
-                    : "Bättre lycka nästa gång!";
-                } else {
-                  return userWon
-                    ? "Du kan slappna av!"
-                    : "Hoppas du är törstig!";
-                }
-              })()}
+          <div className="bg-gray-50 dark:bg-gray-900 rounded p-2 w-full">
+            <p className="text-foreground/80 font-medium text-md text-center">
+              {odds.description}
+            </p>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded p-2 w-full">
+            <div className="grid grid-cols-2 gap-2 mb-2">
+              <div className="text-center">
+                <p className="text-xs text-foreground/60 mb-1">
+                  {odds.challenger.name}
+                </p>
+                <p className="text-base font-bold text-foreground">
+                  {odds.gameResult.challengerResponse}
+                </p>
+              </div>
+              <div className="text-center">
+                <p className="text-xs text-foreground/60 mb-1">
+                  {odds.challengee?.name}
+                </p>
+                <p className="text-base font-bold text-foreground">
+                  {odds.gameResult.challengeeResponse}
+                </p>
+              </div>
+            </div>
+
+            <div className="text-center">
+              <div
+                className={`text-sm font-bold mb-1 ${
+                  odds.gameResult.winner === "challenger"
+                    ? "text-green-600 dark:text-green-400"
+                    : "text-blue-600 dark:text-blue-400"
+                }`}
+              >
+                {(() => {
+                  if (isChallenger) {
+                    return userWon
+                      ? "Dags att se till att sopan gör det!"
+                      : "Bättre lycka nästa gång!";
+                  } else {
+                    return userWon
+                      ? "Du kan slappna av!"
+                      : "Hoppas du är törstig!";
+                  }
+                })()}
+              </div>
             </div>
           </div>
-        </div>
 
-        <button
-          onClick={() => router.push("/")}
-          className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-gray-600 text-white hover:bg-gray-700 dark:bg-gray-500 dark:hover:bg-gray-600 font-medium text-sm h-10 px-5 w-full"
-        >
-          Tillbaka till startsidan
-        </button>
-      </div>
+          <button
+            onClick={() => router.push("/")}
+            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-gray-600 text-white hover:bg-gray-700 dark:bg-gray-500 dark:hover:bg-gray-600 font-medium text-sm h-10 px-5 w-full"
+          >
+            Tillbaka till startsidan
+          </button>
+        </div>
+      </>
     );
   }
 

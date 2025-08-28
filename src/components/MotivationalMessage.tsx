@@ -14,6 +14,16 @@ const motivationalMessages = [
   "Förlorare hittar ursäkter, vinnare hittar vägar! 🚀",
   "Din nästa stora vinst väntar! 💎",
   "Spänning och adrenalinkick garanterad! 🔥",
+  "Liten å knottrig ser ut som ett J 🌝",
+  "Va inte bög, spela åt höger 🏌️",
+  "Primetime på Pornhub 24/7 🍆",
+  "På Marstrand är det Primetime hela dagen 🌞",
+  "Var är min järn-nia? ⁉️",
+  "Golfbil, nej tack 😡",
+  "Är du klar med den där?!?!",
+  "Om jag bor på fastlandet följer jag inte med! 🙂",
+  "Städning? /stealth=on 🥷🥷🥷",
+  "Jag har migrän/borrelia 👶😢",
 ];
 
 const gradientColors = [
