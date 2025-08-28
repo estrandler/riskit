@@ -122,13 +122,13 @@ export default function Home() {
 
         <form
           onSubmit={handleDescriptionSubmit}
-          className="flex flex-col gap-3 items-center w-full max-w-sm"
+          className="flex flex-col gap-3 items-center w-full max-w-xs"
         >
           <input
             placeholder="Utmana!"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="border border-black/[.08] dark:border-white/[.145] rounded px-3 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-foreground w-full resize-none text-sm"
+            className="border border-black/[.08] dark:border-white/[.145] rounded px-3 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-foreground w-full resize-none text-sm max-w-full"
             required
             autoFocus
           />

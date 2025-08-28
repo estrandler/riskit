@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
+import MotivationalMessage from "@/components/MotivationalMessage";
 
 interface Challenger {
   name: string;
@@ -344,6 +345,8 @@ export default function OddsView() {
           <h1 className="text-lg font-medium text-foreground mb-2">
             Din utmaning
           </h1>
+
+          <MotivationalMessage className="mb-4" />
           <p className="text-xs text-foreground/60 mb-2">Kod: {odds.code}</p>
           <button
             onClick={copyUrlToClipboard}
@@ -419,9 +422,6 @@ export default function OddsView() {
               <div className="text-foreground/60 text-sm">
                 Väntar på mottagarens svar...
               </div>
-              <div className="text-xs text-foreground/40 mt-1">
-                Uppdaterar automatiskt
-              </div>
             </div>
           </div>
         ) : (
@@ -443,6 +443,8 @@ export default function OddsView() {
           {odds.challenger.name} utmanar dig &quot;{odds.description}&quot;
         </p>
       </div>
+
+      <MotivationalMessage className="mb-4" />
 
       {odds.max === undefined ? (
         <form
@@ -525,9 +527,6 @@ export default function OddsView() {
           <div className="animate-pulse">
             <div className="text-foreground/60 text-sm">
               Väntar på utmanarens svar...
-            </div>
-            <div className="text-xs text-foreground/40 mt-1">
-              Uppdaterar automatiskt
             </div>
           </div>
         </div>
